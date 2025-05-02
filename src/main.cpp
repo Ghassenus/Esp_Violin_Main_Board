@@ -2,13 +2,13 @@
 #include "core/uart/uart_manager.h"
 #include <BluetoothA2DPSource.h> // <-- juste inclure la lib
 #include "core/bluetooth/bluetooth_manager.h"
+#include "core/bluetooth/bt_pairing_manager.h"
 
 void setup() {
   Serial.begin(115200);      
   delay(500); // Laisse le temps à Serial USB de se stabiliser
-  Serial.println("[ESP2][MAIN] Démarrage setup...");
-
-
+  Serial.println("[ESP2][MAIN] Démarrage setup...");  
+  bt_pairing_manager::init();
   uart_manager::init(); // Initialise UART avec Serial2
   bluetooth_manager::init();    // Initialise le Bluetooth
 }

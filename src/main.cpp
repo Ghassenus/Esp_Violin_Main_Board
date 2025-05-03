@@ -3,6 +3,7 @@
 #include <BluetoothA2DPSource.h> // <-- juste inclure la lib
 #include "core/bluetooth/bluetooth_manager.h"
 #include "core/bluetooth/bt_pairing_manager.h"
+#include "core/audio/audio_manager.h"
 
 void setup() {
   Serial.begin(115200);      
@@ -11,6 +12,7 @@ void setup() {
   bt_pairing_manager::init();
   uart_manager::init(); // Initialise UART avec Serial2
   bluetooth_manager::init();    // Initialise le Bluetooth
+  //audio_manager::init();
 }
 
 void loop() {

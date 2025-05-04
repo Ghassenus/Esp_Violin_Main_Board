@@ -61,6 +61,7 @@ void clear() {
     prefs.remove(KEY_BT_LIST);
     prefs.end();
     Serial.println("[BT_HIST] Historique effacé !");
+    uart_manager::send_formatted("BT_ALL_REMOVED","" );
 }
 
 // Envoyer toute la liste via UART
@@ -109,8 +110,10 @@ void remove(const String& mac) {
     if (found) {
         save(arr);
         Serial.println("[BT_HIST] Appareil supprimé : " + mac);
+        uart_manager::send_formatted("BT_REMOVED", mac );
     } else {
         Serial.println("[BT_HIST] Appareil non trouvé : " + mac);
+        uart_manager::send_formatted("BT_REMOVED_KO", mac );
     }
 }
 

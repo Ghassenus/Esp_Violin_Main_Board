@@ -10,6 +10,39 @@
 
 #include <Arduino.h>
 
+static String get_bt_device_mac (esp_bt_gap_cb_param_t *param){
+
+
+    char bda_str[18];
+    snprintf(bda_str, sizeof(bda_str), "%02x:%02x:%02x:%02x:%02x:%02x",
+        param->disc_res.bda[0], param->disc_res.bda[1], param->disc_res.bda[2],
+        param->disc_res.bda[3], param->disc_res.bda[4], param->disc_res.bda[5]);
+
+        return bda_str;    
+}
+
+static String get_bt_device_name (esp_bt_gap_cb_param_t *param){
+
+    String name = "";
+    if (param->disc_res.num_prop > 0) {
+        for (int i = 0; i < param->disc_res.num_prop; ++i) {
+            if (param->disc_res.prop[i].type == ESP_BT_GAP_DEV_PROP_EIR) {
+                uint8_t* eir = (uint8_t*)param->disc_res.prop[i].val;
+                uint8_t len = 0;
+                uint8_t* name_data = esp_bt_gap_resolve_eir_data(eir, ESP_BT_EIR_TYPE_CMPL_LOCAL_NAME, &len);
+                if (name_data && len > 0) {
+                    name = String((char*)name_data).substring(0, len);
+                }
+            }
+        }
+    }
+
+    if (name == "") name = "(Inconnu)";
+
+    return name;  
+}
+
+
 static void on_gap_event(esp_bt_gap_cb_event_t event, esp_bt_gap_cb_param_t *param) {
     switch (event) {
         case ESP_BT_GAP_PIN_REQ_EVT: {
@@ -23,8 +56,11 @@ static void on_gap_event(esp_bt_gap_cb_event_t event, esp_bt_gap_cb_param_t *par
         case ESP_BT_GAP_AUTH_CMPL_EVT:
             if (param->auth_cmpl.stat == ESP_BT_STATUS_SUCCESS) {
                 Serial.printf("[BT_PAIR] Appairage OK avec %s\n", param->auth_cmpl.device_name);
+                uart_manager::send_formatted("BT_PAIR_OK", "["+ get_bt_device_mac(param) +"]" + "|" + get_bt_device_name(param)); // envoi UART réussite connexion BT
+            
             } else {
                 Serial.printf("[BT_PAIR] Appairage échoué. Statut: %d\n", param->auth_cmpl.stat);
+                uart_manager::send_formatted("BT_PAIR_KO", "["+ get_bt_device_mac(param) +"]" + "|" + get_bt_device_name(param)+ "|" + param->auth_cmpl.stat); // envoi UART echec connexion BT
             }
             break;
 
@@ -64,8 +100,13 @@ static void on_gap_event(esp_bt_gap_cb_event_t event, esp_bt_gap_cb_param_t *par
         case ESP_BT_GAP_DISC_STATE_CHANGED_EVT:
             if (param->disc_st_chg.state == ESP_BT_GAP_DISCOVERY_STOPPED) {
                 Serial.println("[BT_PAIR] Scan terminé");
-                uart_manager::send_formatted("SCAN_END", "");
-            }
+                uart_manager::send_formatted("BT_SCAN_END", "");
+            } else{
+                if (param->disc_st_chg.state == ESP_BT_GAP_DISCOVERY_STARTED) {
+                    Serial.println("[BT_PAIR] Scan lancé");
+                    uart_manager::send_formatted("BT_SCAN_START", "");
+                }
+            } 
             break;
 
         default:
@@ -96,3 +137,10 @@ void bt_pairing_manager::stop_scan() {
     esp_bt_gap_cancel_discovery();
     Serial.println("[BT_PAIR] Scan Bluetooth arrêté manuellement");
 }
+
+
+
+
+
+
+

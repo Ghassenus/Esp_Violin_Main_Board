@@ -48,10 +48,10 @@ void init() {
     a2dp_source.set_on_connection_state_changed([](esp_a2d_connection_state_t state, void*) {
         if (state == ESP_A2D_CONNECTION_STATE_CONNECTED) {
             log_info("[BT] Connexion A2DP établie !");
-            uart_manager::send_formatted("CONNECT_OK", "Périphérique connecté");
+            uart_manager::send_formatted("BT_CONNECT_OK", "Périphérique connecté");
         } else if (state == ESP_A2D_CONNECTION_STATE_DISCONNECTED) {
             log_warn("[BT] Déconnecté A2DP");
-            uart_manager::send_formatted("DISCONNECTED", "Connexion perdue");
+            uart_manager::send_formatted("BT_DISCONNECTED", "Connexion perdue");
         }
     });
 
